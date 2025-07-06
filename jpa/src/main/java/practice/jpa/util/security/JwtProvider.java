@@ -2,13 +2,11 @@ package practice.jpa.util.security;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-@Component
 public class JwtProvider {
 
     private int accessTokenValiditySeconds = 3600;
