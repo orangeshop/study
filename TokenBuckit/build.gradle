@@ -43,3 +43,100 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// build.gradle 파일의 최하단 (또는 적절한 위치)에 추가
+
+// H2 데이터베이스 파일 정리 태스크
+tasks.register('cleanH2DB') {
+    doFirst {
+        println "Cleaning H2 database files..."
+        def dataDir = file("${projectDir}/data")
+        
+        if (dataDir.exists()) {
+            dataDir.listFiles().each { file ->
+                if (file.name.startsWith("h2db")) {
+                    println "Deleting ${file.name}"
+                    file.delete()
+                }
+            }
+            println "H2 database files cleaned."
+        } else {
+            println "Data directory does not exist: ${dataDir.path}"
+        }
+    }
+}
+
+// 포트 종료 태스크
+tasks.register('killPort') {
+    def port = 9092
+
+    doFirst {
+        println "Attempting to kill process on port ${port}..."
+        
+        if (System.properties['os.name'].toLowerCase().contains('windows')) {
+            // Windows
+            try {
+                def process = "netstat -ano | findstr :${port}".execute()
+                process.waitFor()
+                def output = process.text.trim()
+                if (output) {
+                    def lines = output.split('\n')
+                    def pid = lines[0].split("\\s+")[-1] as int
+                    println "Windows: Found process with PID ${pid} on port ${port}. Killing it..."
+                    "taskkill /F /PID ${pid}".execute().waitFor()
+                    println "Process on port ${port} killed."
+                } else {
+                    println "Windows: No process found on port ${port}."
+                }
+            } catch (Exception e) {
+                println "Windows: Failed to kill process on port ${port}. Error: ${e.message}"
+            }
+        } else {
+            // macOS/Linux - lsof 사용
+            try {
+                // 1단계: 포트 사용 중인 PID 찾기
+                def findPidProcess = "lsof -ti:${port}".execute()
+                findPidProcess.waitFor()
+                def pidOutput = findPidProcess.text.trim()
+                
+                if (pidOutput && !pidOutput.isEmpty()) {
+                    def pids = pidOutput.split('\n')
+                    pids.each { pid ->
+                        if (pid.trim()) {
+                            println "macOS/Linux: Found process with PID ${pid} on port ${port}. Killing it..."
+                            def killProcess = "kill -9 ${pid}".execute()
+                            killProcess.waitFor()
+                            
+                            if (killProcess.exitValue() == 0) {
+                                println "Process ${pid} killed successfully."
+                            } else {
+                                println "Failed to kill process ${pid}."
+                            }
+                        }
+                    }
+                } else {
+                    println "macOS/Linux: No process found on port ${port}."
+                }
+            } catch (Exception e) {
+                println "macOS/Linux: Failed to kill process on port ${port}. Error: ${e.message}"
+            }
+        }
+        
+        // 잠시 대기 (프로세스 완전 종료 확인)
+        try {
+            Thread.sleep(1000)
+        } catch (InterruptedException e) {
+            // ignore
+        }
+    }
+}
+
+// bootRun 태스크 설정 - 포트 종료 + DB 정리 후 실행
+bootRun {
+    dependsOn cleanH2DB, killPort
+}
+
+// clean 태스크에도 H2 정리 추가
+clean {
+    dependsOn cleanH2DB, killPort
+}
