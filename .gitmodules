@@ -1,0 +1,3 @@
+[submodule "IMAP-SERVER"]
+	path = IMAP-SERVER
+	url = https://github.com/IMAP-STUDY/IMAP-SERVER.git
