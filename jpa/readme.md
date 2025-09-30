@@ -1,61 +1,25 @@
+# JPA 학습 프로젝트
 
+Spring Data JPA의 핵심 개념과 다양한 기능을 깊이 있게 학습하기 위한 프로젝트입니다.
 
-커뮤니티 앱 
-실배포까지 준비 (KMP or rn)
+## 🎯 목적
 
-결론
+-   JPA의 기본 CRUD 기능 및 쿼리 메소드 사용법을 익힙니다.
+-   엔티티 생명주기(Entity Lifecycle)와 영속성 컨텍스트(Persistence Context)를 이해합니다.
+-   다양한 연관관계 매핑(`@OneToMany`, `@ManyToOne`, `@OneToOne`, `@ManyToMany`)을 직접 구현하고 테스트합니다.
+-   Fetch 전략(Eager, Lazy)과 N+1 문제의 발생 및 해결 과정을 학습합니다.
 
-글마다 접근 제한이 있음
+## 🛠️ 기술 스택
 
-ex) 
-원문 : 가 나 다 라 마바사
-제한 : 가 ■ ■ ■ 마바사
+*   **Framework**: Spring Boot 3.4.1
+*   **Language**: Java 17
+*   **Dependencies**:
+    *   Spring Data JPA
+    *   Spring Web
+    *   Lombok
+    *   H2 Database
+    *   JJWT (JSON Web Token) - (인증/인가 테스트용으로 포함된 것으로 보입니다)
 
-가중치가 높을 수록 제한이 풀림
+## 📖 핵심 학습 내용
 
-접근 제한을 풀려면 해당 유형의 글을 자주 읽었거나
-해당 글쓴이를 자주 방문했거나 
-
-글을 적었는데 추천수가 높다? -> 다른 글 잠금 해제 가능
-
-FCM -> 당일 최다 득표 글을 보여줌
-
-Member
-    - id
-    - name
-    - email
-    - password
-    - created_at (datetime)
-    - updated_at (datetime)
-
-Member status
-    - id 
-    - Member id (FK)
-    - 유저별 가중치를 어떻게 보유?
-    - 글의 성향을 어떻게 체크? ai?
-
-post
-    - Member id (FK)
-    - post id
-    - post 내용
-    - time
-    - image -> 후 순위
-    - **access_level (int)**  ← 0: 전부 공개, 1: 일부 마스킹, 2: 전체 잠금 등
-    - created_at
-    - updated_at
-    
-
-post detail
-    - post id (FK)
-    - geo
-    - like count
-    - dislike count
-
-comment
-    - id
-    - post id
-    - 댓글 내용
-    - 댓글 시간
-    - 
-
-    
+이 프로젝트는 단순히 JPA를 사용하는 것을 넘어, JPA가 내부적으로 어떻게 동작하는지를 이해하는 데 중점을 둡니다. 특히 영속성 컨텍스트의 1차 캐시, 쓰기 지연(dirty checking), 지연 로딩 등의 개념을 코드로 직접 확인하며 학습합니다.

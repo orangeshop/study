@@ -1,65 +1,38 @@
-# BaseSpring - Token Bucket Rate Limiting Project
+# 토큰 버킷(Token Bucket) 알고리즘을 이용한 Rate Limiting 프로젝트
 
-## 🎯 프로젝트 개요
-Token Bucket 알고리즘을 적용한 Rate Limiting 구현 프로젝트
+API의 요청 횟수를 제어하는 Rate Limiting 기법 중 하나인 토큰 버킷 알고리즘을 학습하고, Spring Boot 환경에서 `Bucket4j` 라이브러리를 사용하여 구현하는 프로젝트입니다.
 
-## 🔥 Token Bucket을 선택한 이유
+## 🎯 목적
 
-### 1. **API 남용 방지의 필요성**
+-   토큰 버킷 알고리즘의 동작 원리를 이해합니다.
+-   `Bucket4j` 라이브러리를 사용하여 특정 API에 대한 요청 횟수를 제한하는 방법을 익힙니다.
+-   Spring의 `HandlerInterceptor` 또는 `Filter`를 활용하여 공통적으로 Rate Limiting을 적용하는 방법을 학습합니다.
+-   API별로 다른 요청 제한 정책을 적용하는 방법을 알아봅니다.
 
-- **문제상황**: 무제한 API 호출로 인한 서버 과부하
-- **해결필요**: 악의적 사용자의 DoS 공격 차단
+## 🛠️ 기술 스택
 
+*   **Framework**: Spring Boot 3.5.3
+*   **Language**: Java 17
+*   **Core Dependency**: `com.bucket4j:bucket4j-core`
+*   **Other Dependencies**:
+    *   Spring Web, Spring Data JPA
+    *   H2 Database
+    *   Lombok
+    *   Springdoc OpenAPI (Swagger UI)
 
-// Token Bucket: 버스트 트래픽 허용 + 평균 제한 ✅
+## 📖 핵심 학습 내용
 
+이 프로젝트는 특정 API가 비정상적으로 많이 호출되는 것을 방지하여 서버를 보호하는 Rate Limiter를 구현합니다.
 
-### 3. **실제 구현한 차별화 포인트**
-```java
-// VIP 사용자 구분
-private final Bandwidth defaultLimit = Bandwidth.classic(5, Refill.greedy(5, Duration.ofSeconds(10)));
-private final Bandwidth vipLimit = Bandwidth.classic(20, Refill.greedy(20, Duration.ofSeconds(10)));
-```
-- 일반 사용자: 10초당 5회
-- VIP 사용자: 10초당 20회
-- **근거**: 실제 서비스에서 유료/무료 사용자 구분 필요
+**토큰 버킷 알고리즘**:
+1.  일정량의 토큰을 담을 수 있는 '버킷'이 존재합니다.
+2.  일정한 주기로 버킷에 토큰이 채워집니다.
+3.  API 요청이 들어오면 버킷에서 토큰을 하나 소모합니다.
+4.  만약 버킷에 토큰이 없다면, 해당 요청은 거부되거나 대기합니다.
 
-### 4. **기술적 선택 근거**
+`Bucket4j`는 이러한 로직을 매우 편리하게 구현할 수 있도록 도와주는 라이브러리입니다. 이 프로젝트에서는 특정 API 엔드포인트에 대해 "1분에 10번만 요청 가능"과 같은 규칙을 적용하는 방법을 중점적으로 다룹니다.
 
-#### Bucket4j 라이브러리 선택
-```java
-// 직접 구현 대신 검증된 라이브러리 사용
-import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Bandwidth;
-```
-- **이유**: 멀티스레드 안전성 보장
-- **효과**: 개발 시간 단축 + 안정성 확보
+## ✨ 특이사항
 
-#### Interceptor 패턴 적용
-```java
-@Override
-public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-    // 모든 /api/** 요청을 사전 차단
-}
-```
-- **이유**: 비즈니스 로직과 분리된 횡단 관심사 처리
-- **효과**: 코드 재사용성 + 유지보수성 향상
-
-#### IP 기반 Fallback
-```java
-if(userId == null || userId.isEmpty()) {
-    userId = request.getRemoteAddr(); // IP로 대체
-}
-```
-- **이유**: 인증되지 않은 사용자도 제한 필요
-- **효과**: 익명 사용자 남용 방지
-
-
-## 🏗 아키텍처
-```
-Request → RateLimitInterceptor → TokenBucket 검증 → Controller
-                ↓
-           Rate Limit 초과시 429 응답
-```
-
-이 프로젝트는 실제 프로덕션 환경에서 발생할 수 있는 API 남용 문제를 해결하기 위한 실습용 구현입니다.
+-   `build.gradle`에 `cleanH2DB`, `killPort`와 같은 유틸리티 태스크가 포함되어 있어, 개발 편의성을 높이고 있습니다.
+-   Swagger UI가 적용되어 있어 API 테스트를 편리하게 할 수 있습니다.
