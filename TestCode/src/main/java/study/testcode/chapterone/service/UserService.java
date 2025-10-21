@@ -11,7 +11,7 @@ import study.testcode.chapterone.dto.request.UserGetRequest;
 import study.testcode.chapterone.dto.request.UserUpdateRequest;
 import study.testcode.chapterone.dto.response.UserMyResponse;
 import study.testcode.chapterone.dto.response.UserResponse;
-import study.testcode.chapterone.entoty.Users;
+import study.testcode.chapterone.entity.Users;
 import study.testcode.chapterone.repository.UserRepository;
 
 

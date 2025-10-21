@@ -3,7 +3,7 @@ package study.testcode.chapterone.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import study.testcode.chapterone.entoty.Users;
+import study.testcode.chapterone.entity.Users;
 
 import java.util.Optional;
 

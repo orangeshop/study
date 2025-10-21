@@ -1,4 +1,4 @@
-package study.testcode.chapterone.entoty;
+package study.testcode.chapterone.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
