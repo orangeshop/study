@@ -25,30 +25,24 @@ public class StaticResourceHandler implements Handler {
             Path filePath = WEB_ROOT.resolve(requestPath.substring(1)).normalize();
 
             if (!filePath.startsWith(WEB_ROOT)) {
-                response.setStatus(403, "Forbidden");
-                response.addHeader("Content-Type", "text/plain; charset=UTF-8");
-                response.setBody("403 Forbidden");
+                response.sendError(403, "Forbidden");
                 return response;
             }
 
             if (!Files.exists(filePath) || Files.isDirectory(filePath)) {
-                response.setStatus(404, "Not Found");
-                response.addHeader("Content-Type", "text/plain; charset=UTF-8");
-                response.setBody("404 Not Found");
+                response.sendError(404, "Not Found");
                 return response;
             }
 
             byte[] body = Files.readAllBytes(filePath);
 
-            response.setStatus(200, "OK");
-            response.addHeader("Content-Type", getContentType(filePath));
+            response.setStatus(200);
+            response.setContentType(getContentType(filePath));
             response.setBody(body);
 
             return response;
         } catch (IOException e) {
-            response.setStatus(500, "Internal Server Error");
-            response.addHeader("Content-Type", "text/plain; charset=UTF-8");
-            response.setBody("500 Internal Server Error");
+            response.sendError(500, "Internal Server Error");
             return response;
         }
     }

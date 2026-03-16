@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
 public class ClientHandler {
@@ -49,9 +50,7 @@ public class ClientHandler {
 
     private HttpResponse createErrorResponse(int statusCode, String statusMessage) {
         HttpResponse response = new HttpResponse();
-        response.setStatus(statusCode, statusMessage);
-        response.addHeader("Content-Type", "text/plain; charset=UTF-8");
-        response.setBody(statusCode + " " + statusMessage);
+        response.sendError(statusCode, statusMessage);
         return response;
     }
 
@@ -69,7 +68,7 @@ public class ClientHandler {
         }
 
         request.setMethod(requestLineParts[0]);
-        request.setPath(requestLineParts[1]);
+        parsePath(request, requestLineParts[1]);
         request.setVersion(requestLineParts[2]);
 
         String line;
@@ -88,6 +87,73 @@ public class ClientHandler {
             request.addHeader(headerName, headerValue);
         }
 
+        parseBody(reader, request);
+
         return request;
+    }
+
+    private void parsePath(HttpRequest request, String rawPath) {
+        int queryStartIndex = rawPath.indexOf('?');
+        if (queryStartIndex < 0) {
+            request.setPath(rawPath);
+            return;
+        }
+
+        request.setPath(rawPath.substring(0, queryStartIndex));
+        String queryString = rawPath.substring(queryStartIndex + 1);
+        request.setQueryString(queryString);
+        parseParameters(queryString, request);
+    }
+
+    private void parseBody(BufferedReader reader, HttpRequest request) throws IOException {
+        String contentLengthHeader = request.getHeader("Content-Length");
+        if (contentLengthHeader == null) {
+            return;
+        }
+
+        int contentLength = Integer.parseInt(contentLengthHeader);
+        if (contentLength <= 0) {
+            return;
+        }
+
+        char[] bodyChars = new char[contentLength];
+        int totalRead = 0;
+        while (totalRead < contentLength) {
+            int read = reader.read(bodyChars, totalRead, contentLength - totalRead);
+            if (read == -1) {
+                break;
+            }
+            totalRead += read;
+        }
+
+        String body = new String(bodyChars, 0, totalRead);
+        request.setBody(body);
+
+        String contentType = request.getHeader("Content-Type");
+        if (contentType != null && contentType.startsWith("application/x-www-form-urlencoded")) {
+            parseParameters(body, request);
+        }
+    }
+
+    private void parseParameters(String source, HttpRequest request) {
+        if (source == null || source.isEmpty()) {
+            return;
+        }
+
+        String[] pairs = source.split("&");
+        for (String pair : pairs) {
+            if (pair.isEmpty()) {
+                continue;
+            }
+
+            String[] parts = pair.split("=", 2);
+            String name = decode(parts[0]);
+            String value = parts.length > 1 ? decode(parts[1]) : "";
+            request.addParameter(name, value);
+        }
+    }
+
+    private String decode(String value) {
+        return URLDecoder.decode(value, StandardCharsets.UTF_8);
     }
 }

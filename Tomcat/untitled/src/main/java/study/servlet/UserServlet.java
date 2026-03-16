@@ -11,9 +11,16 @@ public class UserServlet implements Servlet {
 
     @Override
     public void service(HttpRequest request, HttpResponse response) {
-        response.setStatus(200, "OK");
-        response.addHeader("Content-Type", "text/plain; charset=UTF-8");
-        response.setBody("User Page");
+        response.setStatus(200);
+        response.setTextPlainContentType();
+
+        String name = request.getParameter("name");
+        if (name == null || name.isBlank()) {
+            response.setBody("User Page");
+            return;
+        }
+
+        response.setBody("User Page: " + name);
     }
 
     @Override

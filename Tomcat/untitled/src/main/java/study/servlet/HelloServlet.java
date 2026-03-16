@@ -11,8 +11,8 @@ public class HelloServlet implements Servlet {
 
     @Override
     public void service(HttpRequest request, HttpResponse response) {
-        response.setStatus(200, "OK");
-        response.addHeader("Content-Type", "text/plain; charset=UTF-8");
+        response.setStatus(200);
+        response.setTextPlainContentType();
         response.setBody("Hello Servlet World");
     }
 

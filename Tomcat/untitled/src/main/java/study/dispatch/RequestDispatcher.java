@@ -21,9 +21,7 @@ public class RequestDispatcher {
 
         if (path == null) {
             HttpResponse response = new HttpResponse();
-            response.setStatus(400, "Bad Request");
-            response.addHeader("Content-Type", "text/plain; charset=UTF-8");
-            response.setBody("400 Bad Request");
+            response.sendError(400, "Bad Request");
             return response;
         }
 

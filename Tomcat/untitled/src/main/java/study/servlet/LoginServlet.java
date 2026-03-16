@@ -11,9 +11,16 @@ public class LoginServlet implements Servlet {
 
     @Override
     public void service(HttpRequest request, HttpResponse response) {
-        response.setStatus(200, "OK");
-        response.addHeader("Content-Type", "text/plain; charset=UTF-8");
-        response.setBody("Login Page");
+        response.setStatus(200);
+        response.setTextPlainContentType();
+
+        String username = request.getParameter("username");
+        if (username == null || username.isBlank()) {
+            response.setBody("Login Page");
+            return;
+        }
+
+        response.setBody("Login Page: " + username);
     }
 
     @Override

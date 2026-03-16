@@ -5,6 +5,15 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class HttpResponse {
+    private static final Map<Integer, String> DEFAULT_STATUS_MESSAGES = Map.of(
+            200, "OK",
+            302, "Found",
+            400, "Bad Request",
+            403, "Forbidden",
+            404, "Not Found",
+            500, "Internal Server Error"
+    );
+
     private int statusCode;
     private String statusMessage;
     private final Map<String, String> headers = new LinkedHashMap<>();
@@ -13,6 +22,10 @@ public class HttpResponse {
     public HttpResponse() {
         this.statusCode = 200;
         this.statusMessage = "OK";
+    }
+
+    public void setStatus(int statusCode) {
+        setStatus(statusCode, DEFAULT_STATUS_MESSAGES.getOrDefault(statusCode, ""));
     }
 
     public void setStatus(int statusCode, String statusMessage) {
@@ -30,6 +43,34 @@ public class HttpResponse {
 
     public void setBody(byte[] body) {
         this.body = body;
+    }
+
+    public void setContentType(String contentType) {
+        addHeader("Content-Type", contentType);
+    }
+
+    public void setTextPlainContentType() {
+        setContentType("text/plain; charset=UTF-8");
+    }
+
+    public void setHtmlContentType() {
+        setContentType("text/html; charset=UTF-8");
+    }
+
+    public void setJsonContentType() {
+        setContentType("application/json; charset=UTF-8");
+    }
+
+    public void sendError(int statusCode, String message) {
+        setStatus(statusCode, message);
+        setTextPlainContentType();
+        setBody(statusCode + " " + message);
+    }
+
+    public void redirect(String location) {
+        setStatus(302);
+        addHeader("Location", location);
+        setBody(new byte[0]);
     }
 
     public byte[] toHttpBytes() {
