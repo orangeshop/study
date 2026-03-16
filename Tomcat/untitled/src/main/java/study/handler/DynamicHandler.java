@@ -16,6 +16,11 @@ public class DynamicHandler implements Handler {
         servletMap.put("/hello", new HelloServlet());
     }
 
+    private void register(String path, Servlet servlet) {
+        servlet.init();
+        servletMap.put(path, servlet);
+    }
+
     @Override
     public HttpResponse handle(HttpRequest request) {
         HttpResponse response = new HttpResponse();
@@ -30,5 +35,11 @@ public class DynamicHandler implements Handler {
 
         servlet.service(request, response);
         return response;
+    }
+
+    public void destroyAll() {
+        for (Servlet servlet : servletMap.values()) {
+            servlet.destroy();
+        }
     }
 }
