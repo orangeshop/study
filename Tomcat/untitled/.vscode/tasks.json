@@ -1,0 +1,47 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Git Status (Current Project)",
+      "type": "shell",
+      "command": "git status --short -- Tomcat/untitled",
+      "options": {
+        "cwd": "/Users/choeyeongho/clone/study"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Git Diff (Current Project)",
+      "type": "shell",
+      "command": "git diff -- Tomcat/untitled",
+      "options": {
+        "cwd": "/Users/choeyeongho/clone/study"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Git Diff Cached (Current Project)",
+      "type": "shell",
+      "command": "git diff --cached -- Tomcat/untitled",
+      "options": {
+        "cwd": "/Users/choeyeongho/clone/study"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}
