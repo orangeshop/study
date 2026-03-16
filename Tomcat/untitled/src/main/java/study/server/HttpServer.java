@@ -5,14 +5,18 @@ import study.dispatch.RequestDispatcher;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class HttpServer {
     private final int port;
     private final RequestDispatcher dispatcher;
+    private final ExecutorService executorService;
 
     public HttpServer(int port, RequestDispatcher dispatcher) {
         this.port = port;
         this.dispatcher = dispatcher;
+        this.executorService = Executors.newCachedThreadPool();
     }
 
     public void start() {
@@ -24,10 +28,12 @@ public class HttpServer {
                 System.out.println("클라이언트 연결 " + socket.getInetAddress());
 
                 ClientHandler clientHandler = new ClientHandler(socket, dispatcher);
-                clientHandler.handle();
+                executorService.submit(clientHandler::handle);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
+        } finally {
+            executorService.shutdown();
         }
     }
 }
