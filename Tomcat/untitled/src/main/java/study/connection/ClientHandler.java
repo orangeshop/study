@@ -1,5 +1,7 @@
 package study.connection;
 
+import study.http.HttpRequest;
+
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -16,19 +18,12 @@ public class ClientHandler {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
         ) {
-            StringBuilder request = new StringBuilder();
-            String line;
+            HttpRequest request = parseRequest(reader);
 
-            while ((line = reader.readLine()) != null) {
-                if (line.isEmpty()) {
-                    break;
-                }
-                request.append(line).append("\n");
-            }
-
-            System.out.println("=== 요청 시작 ===");
-            System.out.println(request);
-            System.out.println("=== 요청 끝 ===");
+            System.out.println("method = " + request.getMethod());
+            System.out.println("path = " + request.getPath());
+            System.out.println("version = " + request.getVersion());
+            System.out.println("headers = " + request.getHeaders());
 
             String body = "Hello World";
             byte[] bodyBytes = body.getBytes(StandardCharsets.UTF_8);
@@ -39,6 +34,7 @@ public class ClientHandler {
             writer.write("\r\n");
             writer.write(body);
             writer.flush();
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
@@ -48,5 +44,33 @@ public class ClientHandler {
                 // ignore
             }
         }
+    }
+
+    private HttpRequest parseRequest(BufferedReader reader) throws IOException {
+        HttpRequest request = new HttpRequest();
+
+        String requestLine = reader.readLine();
+        if (requestLine == null || requestLine.isEmpty()) {
+            return request;
+        }
+
+        String[] requestLineParts = requestLine.split(" ");
+        request.setMethod(requestLineParts[0]);
+        request.setPath(requestLineParts[1]);
+        request.setVersion(requestLineParts[2]);
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            if (line.isEmpty()) {
+                break;
+            }
+
+            String[] headerParts = line.split(":", 2);
+            String headerName = headerParts[0].trim();
+            String headerValue = headerParts[1].trim();
+            request.addHeader(headerName, headerValue);
+        }
+
+        return request;
     }
 }
