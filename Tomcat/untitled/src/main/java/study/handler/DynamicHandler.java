@@ -1,14 +1,9 @@
 package study.handler;
 
-
 import study.container.ServletContainer;
 import study.http.HttpRequest;
 import study.http.HttpResponse;
-import study.servlet.HelloServlet;
 import study.servlet.Servlet;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class DynamicHandler implements Handler {
     private final ServletContainer servletContainer;

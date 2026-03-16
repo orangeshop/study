@@ -1,19 +1,18 @@
 package study.server;
 
 import study.connection.ClientHandler;
-import study.handler.Handler;
+import study.dispatch.RequestDispatcher;
 
-import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class HttpServer {
     private final int port;
-    private final Handler dynamicHandler;
+    private final RequestDispatcher dispatcher;
 
-    public HttpServer(int port, Handler dynamicHandler) {
+    public HttpServer(int port, RequestDispatcher dispatcher) {
         this.port = port;
-        this.dynamicHandler = dynamicHandler;
+        this.dispatcher = dispatcher;
     }
 
     public void start() {
@@ -24,7 +23,7 @@ public class HttpServer {
                 Socket socket = s.accept();
                 System.out.println("클라이언트 연결 " + socket.getInetAddress());
 
-                ClientHandler clientHandler = new ClientHandler(socket, dynamicHandler);
+                ClientHandler clientHandler = new ClientHandler(socket, dispatcher);
                 clientHandler.handle();
             }
         } catch (Exception e) {

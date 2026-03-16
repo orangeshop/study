@@ -1,9 +1,8 @@
 package study.connection;
 
-import study.handler.Handler;
+import study.dispatch.RequestDispatcher;
 import study.http.HttpRequest;
 import study.http.HttpResponse;
-import study.resource.StaticResourceHandler;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,12 +13,11 @@ import java.nio.charset.StandardCharsets;
 
 public class ClientHandler {
     private final Socket socket;
-    private final Handler staticResourceHandler = new StaticResourceHandler();
-    private final Handler dynamicHandler;
+    private final RequestDispatcher dispatcher;
 
-    public ClientHandler(Socket socket, Handler dynamicHandler) {
+    public ClientHandler(Socket socket, RequestDispatcher dispatcher) {
         this.socket = socket;
-        this.dynamicHandler = dynamicHandler;
+        this.dispatcher = dispatcher;
     }
 
     public void handle() {
@@ -29,12 +27,7 @@ public class ClientHandler {
 
             try {
                 HttpRequest request = parseRequest(reader);
-                if (request.getPath() == null) {
-                    writeResponse(outputStream, createErrorResponse(400, "Bad Request"));
-                    return;
-                }
-
-                writeResponse(outputStream, route(request));
+                writeResponse(outputStream, dispatcher.dispatch(request));
             } catch (Exception e) {
                 writeResponse(outputStream, createErrorResponse(500, "Internal Server Error"));
             }
@@ -47,13 +40,6 @@ public class ClientHandler {
                 // ignore
             }
         }
-    }
-
-    private HttpResponse route(HttpRequest request) {
-        if ("/hello".equals(request.getPath())) {
-            return dynamicHandler.handle(request);
-        }
-        return staticResourceHandler.handle(request);
     }
 
     private void writeResponse(OutputStream outputStream, HttpResponse response) throws IOException {

@@ -17,6 +17,10 @@ public class ServletContainer {
         return servletMap.get(path);
     }
 
+    public boolean hasServlet(String path) {
+        return servletMap.containsKey(path);
+    }
+
     public void destroyAll() {
         for (Servlet servlet : servletMap.values()) {
             servlet.destroy();
