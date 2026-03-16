@@ -1,5 +1,7 @@
 package study.connection;
 
+import study.handler.DynamicHandler;
+import study.handler.Handler;
 import study.http.HttpRequest;
 import study.http.HttpResponse;
 import study.resource.StaticResourceHandler;
@@ -10,7 +12,8 @@ import java.nio.charset.StandardCharsets;
 
 public class ClientHandler {
     private final Socket socket;
-    private final StaticResourceHandler staticResourceHandler = new StaticResourceHandler();
+    private final Handler staticResourceHandler = new StaticResourceHandler();
+    private final Handler dynamicHandler = new DynamicHandler();
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
@@ -32,7 +35,7 @@ public class ClientHandler {
                 outputStream.flush();
                 return;
             }
-            HttpResponse response = staticResourceHandler.handle(request);
+            HttpResponse response = route(request);
 
             outputStream.write(response.toHttpBytes());
             outputStream.flush();
@@ -46,6 +49,13 @@ public class ClientHandler {
                 // ignore
             }
         }
+    }
+
+    private HttpResponse route(HttpRequest request) {
+        if (request.getPath().startsWith("/hello")) {
+            return dynamicHandler.handle(request);
+        }
+        return staticResourceHandler.handle(request);
     }
 
     private HttpRequest parseRequest(BufferedReader reader) throws IOException {
@@ -72,6 +82,10 @@ public class ClientHandler {
             }
 
             String[] headerParts = line.split(":", 2);
+            if (headerParts.length < 2) {
+                continue;
+            }
+
             String headerName = headerParts[0].trim();
             String headerValue = headerParts[1].trim();
             request.addHeader(headerName, headerValue);

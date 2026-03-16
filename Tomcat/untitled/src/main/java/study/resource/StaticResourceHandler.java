@@ -1,5 +1,6 @@
 package study.resource;
 
+import study.handler.Handler;
 import study.http.HttpRequest;
 import study.http.HttpResponse;
 
@@ -7,9 +8,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class StaticResourceHandler {
+
+public class StaticResourceHandler implements Handler {
     private static final String WEB_ROOT = "webapp";
 
+    @Override
     public HttpResponse handle(HttpRequest request) {
         HttpResponse response = new HttpResponse();
 
