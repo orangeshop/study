@@ -1,5 +1,6 @@
 package study.resource;
 
+import study.exception.BadRequestException;
 import study.exception.ForbiddenException;
 import study.exception.InternalServerErrorException;
 import study.exception.NotFoundException;
@@ -8,6 +9,8 @@ import study.http.HttpRequest;
 import study.http.HttpResponse;
 
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -19,21 +22,7 @@ public class StaticResourceHandler implements Handler {
         HttpResponse response = new HttpResponse();
 
         try {
-            String requestPath = request.getPath();
-
-            if (requestPath.equals("/")) {
-                requestPath = "/index.html";
-            }
-
-            Path filePath = WEB_ROOT.resolve(requestPath.substring(1)).normalize();
-
-            if (!filePath.startsWith(WEB_ROOT)) {
-                throw new ForbiddenException("Forbidden");
-            }
-
-            if (!Files.exists(filePath) || Files.isDirectory(filePath)) {
-                throw new NotFoundException("Not Found");
-            }
+            Path filePath = resolveResourcePath(request.getPath());
 
             byte[] body = Files.readAllBytes(filePath);
 
@@ -45,6 +34,46 @@ public class StaticResourceHandler implements Handler {
         } catch (IOException e) {
             throw new InternalServerErrorException("Internal Server Error", e);
         }
+    }
+
+    private Path resolveResourcePath(String rawRequestPath) {
+        String requestPath = normalizeRequestPath(rawRequestPath);
+        Path filePath = WEB_ROOT.resolve(requestPath.substring(1)).normalize();
+
+        if (!filePath.startsWith(WEB_ROOT)) {
+            throw new ForbiddenException("Forbidden");
+        }
+
+        if (!Files.exists(filePath) || !Files.isRegularFile(filePath)) {
+            throw new NotFoundException("Not Found");
+        }
+
+        return filePath;
+    }
+
+    private String normalizeRequestPath(String rawRequestPath) {
+        if (rawRequestPath == null || rawRequestPath.isBlank()) {
+            throw new BadRequestException("Bad Request");
+        }
+
+        String decodedPath = URLDecoder.decode(rawRequestPath, StandardCharsets.UTF_8);
+        if (!decodedPath.startsWith("/")) {
+            throw new BadRequestException("Bad Request");
+        }
+
+        if (decodedPath.contains("\0")) {
+            throw new BadRequestException("Bad Request");
+        }
+
+        if (decodedPath.contains("\\")) {
+            throw new ForbiddenException("Forbidden");
+        }
+
+        if (decodedPath.equals("/")) {
+            return "/index.html";
+        }
+
+        return decodedPath;
     }
 
     private String getContentType(Path filePath) {
