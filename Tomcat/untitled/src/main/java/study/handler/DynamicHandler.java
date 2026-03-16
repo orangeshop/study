@@ -1,6 +1,7 @@
 package study.handler;
 
 
+import study.container.ServletContainer;
 import study.http.HttpRequest;
 import study.http.HttpResponse;
 import study.servlet.HelloServlet;
@@ -10,22 +11,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DynamicHandler implements Handler {
-    private final Map<String, Servlet> servletMap = new HashMap<>();
+    private final ServletContainer servletContainer;
 
-    public DynamicHandler() {
-        servletMap.put("/hello", new HelloServlet());
-    }
-
-    private void register(String path, Servlet servlet) {
-        servlet.init();
-        servletMap.put(path, servlet);
+    public DynamicHandler(ServletContainer servletContainer) {
+        this.servletContainer = servletContainer;
     }
 
     @Override
     public HttpResponse handle(HttpRequest request) {
         HttpResponse response = new HttpResponse();
 
-        Servlet servlet = servletMap.get(request.getPath());
+        Servlet servlet = servletContainer.getServlet(request.getPath());
+
         if (servlet == null) {
             response.setStatus(404, "Not Found");
             response.addHeader("Content-Type", "text/plain; charset=UTF-8");
@@ -35,11 +32,5 @@ public class DynamicHandler implements Handler {
 
         servlet.service(request, response);
         return response;
-    }
-
-    public void destroyAll() {
-        for (Servlet servlet : servletMap.values()) {
-            servlet.destroy();
-        }
     }
 }

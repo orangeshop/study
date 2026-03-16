@@ -8,9 +8,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-
 public class StaticResourceHandler implements Handler {
-    private static final String WEB_ROOT = "webapp";
+    private static final Path WEB_ROOT = Path.of("webapp").toAbsolutePath().normalize();
 
     @Override
     public HttpResponse handle(HttpRequest request) {
@@ -23,7 +22,14 @@ public class StaticResourceHandler implements Handler {
                 requestPath = "/index.html";
             }
 
-            Path filePath = Path.of(WEB_ROOT, requestPath.substring(1));
+            Path filePath = WEB_ROOT.resolve(requestPath.substring(1)).normalize();
+
+            if (!filePath.startsWith(WEB_ROOT)) {
+                response.setStatus(403, "Forbidden");
+                response.addHeader("Content-Type", "text/plain; charset=UTF-8");
+                response.setBody("403 Forbidden");
+                return response;
+            }
 
             if (!Files.exists(filePath) || Files.isDirectory(filePath)) {
                 response.setStatus(404, "Not Found");

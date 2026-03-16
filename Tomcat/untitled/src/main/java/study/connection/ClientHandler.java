@@ -1,47 +1,45 @@
 package study.connection;
 
-import study.handler.DynamicHandler;
 import study.handler.Handler;
 import study.http.HttpRequest;
 import study.http.HttpResponse;
 import study.resource.StaticResourceHandler;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
 public class ClientHandler {
     private final Socket socket;
     private final Handler staticResourceHandler = new StaticResourceHandler();
-    private final Handler dynamicHandler = new DynamicHandler();
+    private final Handler dynamicHandler;
 
-    public ClientHandler(Socket socket) {
+    public ClientHandler(Socket socket, Handler dynamicHandler) {
         this.socket = socket;
+        this.dynamicHandler = dynamicHandler;
     }
 
     public void handle() {
-        try (
-                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
-                OutputStream outputStream = socket.getOutputStream()
-        ) {
-            HttpRequest request = parseRequest(reader);
-            if (request.getPath() == null) {
-                HttpResponse response = new HttpResponse();
-                response.setStatus(400, "Bad Request");
-                response.addHeader("Content-Type", "text/plain; charset=UTF-8");
-                response.setBody("400 Bad Request");
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+            OutputStream outputStream = socket.getOutputStream();
 
-                outputStream.write(response.toHttpBytes());
-                outputStream.flush();
-                return;
+            try {
+                HttpRequest request = parseRequest(reader);
+                if (request.getPath() == null) {
+                    writeResponse(outputStream, createErrorResponse(400, "Bad Request"));
+                    return;
+                }
+
+                writeResponse(outputStream, route(request));
+            } catch (Exception e) {
+                writeResponse(outputStream, createErrorResponse(500, "Internal Server Error"));
             }
-            HttpResponse response = route(request);
-
-            outputStream.write(response.toHttpBytes());
-            outputStream.flush();
-
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            // ignore because the connection may already be broken
         } finally {
             try {
                 socket.close();
@@ -52,10 +50,23 @@ public class ClientHandler {
     }
 
     private HttpResponse route(HttpRequest request) {
-        if (request.getPath().startsWith("/hello")) {
+        if ("/hello".equals(request.getPath())) {
             return dynamicHandler.handle(request);
         }
         return staticResourceHandler.handle(request);
+    }
+
+    private void writeResponse(OutputStream outputStream, HttpResponse response) throws IOException {
+        outputStream.write(response.toHttpBytes());
+        outputStream.flush();
+    }
+
+    private HttpResponse createErrorResponse(int statusCode, String statusMessage) {
+        HttpResponse response = new HttpResponse();
+        response.setStatus(statusCode, statusMessage);
+        response.addHeader("Content-Type", "text/plain; charset=UTF-8");
+        response.setBody(statusCode + " " + statusMessage);
+        return response;
     }
 
     private HttpRequest parseRequest(BufferedReader reader) throws IOException {
