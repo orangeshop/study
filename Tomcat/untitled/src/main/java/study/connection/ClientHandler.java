@@ -92,6 +92,7 @@ public class ClientHandler {
         }
 
         parseBody(reader, request);
+        parseCookies(request);
 
         return request;
     }
@@ -165,5 +166,22 @@ public class ClientHandler {
 
     private String decode(String value) {
         return URLDecoder.decode(value, StandardCharsets.UTF_8);
+    }
+
+    private void parseCookies(HttpRequest request) {
+        String cookieHeader = request.getHeader("Cookie");
+        if (cookieHeader == null || cookieHeader.isBlank()) {
+            return;
+        }
+
+        String[] cookies = cookieHeader.split(";");
+        for (String cookie : cookies) {
+            String[] parts = cookie.trim().split("=", 2);
+            if (parts.length < 2) {
+                continue;
+            }
+
+            request.addCookie(parts[0].trim(), parts[1].trim());
+        }
     }
 }

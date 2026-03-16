@@ -4,10 +4,12 @@ import study.container.ServletContainer;
 import study.dispatch.RequestDispatcher;
 import study.filter.Filter;
 import study.filter.LoggingFilter;
+import study.filter.SessionFilter;
 import study.handler.DynamicHandler;
 import study.handler.Handler;
 import study.resource.StaticResourceHandler;
 import study.server.HttpServer;
+import study.session.SessionManager;
 import study.servlet.HelloServlet;
 import study.servlet.LoginServlet;
 import study.servlet.UserServlet;
@@ -24,7 +26,11 @@ public class Main {
 
         Handler dynamicHandler = new DynamicHandler(servletContainer);
         Handler staticHandler = new StaticResourceHandler();
-        List<Filter> filters = List.of(new LoggingFilter());
+        SessionManager sessionManager = new SessionManager();
+        List<Filter> filters = List.of(
+                new SessionFilter(sessionManager),
+                new LoggingFilter()
+        );
         RequestDispatcher dispatcher = new RequestDispatcher(staticHandler, dynamicHandler, servletContainer, filters);
 
         HttpServer httpServer = new HttpServer(8080, dispatcher);

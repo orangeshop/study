@@ -2,6 +2,7 @@ package study.servlet;
 
 import study.http.HttpRequest;
 import study.http.HttpResponse;
+import study.session.HttpSession;
 
 public class LoginServlet implements Servlet {
     @Override
@@ -20,7 +21,10 @@ public class LoginServlet implements Servlet {
             return;
         }
 
-        response.setBody("Login Page: " + username);
+        HttpSession session = request.getSession();
+        session.setAttribute("username", username);
+
+        response.setBody("Login Success: " + username);
     }
 
     @Override

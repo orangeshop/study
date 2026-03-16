@@ -49,6 +49,17 @@ public class HttpResponse {
         addHeader("Content-Type", contentType);
     }
 
+    public void addCookie(String name, String value, boolean httpOnly) {
+        StringBuilder cookie = new StringBuilder();
+        cookie.append(name).append("=").append(value).append("; Path=/");
+
+        if (httpOnly) {
+            cookie.append("; HttpOnly");
+        }
+
+        addHeader("Set-Cookie", cookie.toString());
+    }
+
     public void setTextPlainContentType() {
         setContentType("text/plain; charset=UTF-8");
     }

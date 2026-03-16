@@ -2,6 +2,7 @@ package study.servlet;
 
 import study.http.HttpRequest;
 import study.http.HttpResponse;
+import study.session.HttpSession;
 
 public class UserServlet implements Servlet {
     @Override
@@ -16,7 +17,19 @@ public class UserServlet implements Servlet {
 
         String name = request.getParameter("name");
         if (name == null || name.isBlank()) {
-            response.setBody("User Page");
+            HttpSession session = request.getSession(false);
+            if (session == null) {
+                response.setBody("User Page");
+                return;
+            }
+
+            Object username = session.getAttribute("username");
+            if (username == null) {
+                response.setBody("User Page");
+                return;
+            }
+
+            response.setBody("User Page: " + username);
             return;
         }
 
