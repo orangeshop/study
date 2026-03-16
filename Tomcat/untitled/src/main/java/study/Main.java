@@ -2,6 +2,8 @@ package study;
 
 import study.container.ServletContainer;
 import study.dispatch.RequestDispatcher;
+import study.filter.Filter;
+import study.filter.LoggingFilter;
 import study.handler.DynamicHandler;
 import study.handler.Handler;
 import study.resource.StaticResourceHandler;
@@ -9,6 +11,8 @@ import study.server.HttpServer;
 import study.servlet.HelloServlet;
 import study.servlet.LoginServlet;
 import study.servlet.UserServlet;
+
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
@@ -20,7 +24,8 @@ public class Main {
 
         Handler dynamicHandler = new DynamicHandler(servletContainer);
         Handler staticHandler = new StaticResourceHandler();
-        RequestDispatcher dispatcher = new RequestDispatcher(staticHandler, dynamicHandler, servletContainer);
+        List<Filter> filters = List.of(new LoggingFilter());
+        RequestDispatcher dispatcher = new RequestDispatcher(staticHandler, dynamicHandler, servletContainer, filters);
 
         HttpServer httpServer = new HttpServer(8080, dispatcher);
         httpServer.start();
