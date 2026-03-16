@@ -1,6 +1,7 @@
 package study.connection;
 
 import study.http.HttpRequest;
+import study.http.HttpResponse;
 
 import java.io.*;
 import java.net.Socket;
@@ -25,14 +26,10 @@ public class ClientHandler {
             System.out.println("version = " + request.getVersion());
             System.out.println("headers = " + request.getHeaders());
 
-            String body = "Hello World";
-            byte[] bodyBytes = body.getBytes(StandardCharsets.UTF_8);
+            HttpResponse response = new HttpResponse();
+            response.setBody("Hello World");
 
-            writer.write("HTTP/1.1 200 OK\r\n");
-            writer.write("Content-Type: text/plain; charset=UTF-8\r\n");
-            writer.write("Content-Length: " + bodyBytes.length + "\r\n");
-            writer.write("\r\n");
-            writer.write(body);
+            writer.write(response.toHttpString());
             writer.flush();
 
         } catch (IOException e) {
