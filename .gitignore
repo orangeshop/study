@@ -1,0 +1,61 @@
+/Tomcat/untitled/
+# IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# VS Code
+.vscode/
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# Gradle
+.gradle/
+build/
+
+# Maven
+target/
+
+# Java
+*.class
+*.log
+hs_err_pid*
+replay_pid*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.out
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# Package files
+*.jar
+*.war
+*.ear
+
+# Generated files
+bin/
