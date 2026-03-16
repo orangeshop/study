@@ -23,7 +23,7 @@ public class HttpServer {
                 System.out.println("클라이언트 연결 " + socket.getInetAddress());
 
                 ClientHandler clientHandler = new ClientHandler(socket);
-                clientHandler.handler();
+                clientHandler.handle();
 
             }
         } catch (Exception e) {

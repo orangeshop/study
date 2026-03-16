@@ -2,6 +2,7 @@ package study.connection;
 
 import study.http.HttpRequest;
 import study.http.HttpResponse;
+import study.resource.StaticResourceHandler;
 
 import java.io.*;
 import java.net.Socket;
@@ -9,28 +10,32 @@ import java.nio.charset.StandardCharsets;
 
 public class ClientHandler {
     private final Socket socket;
+    private final StaticResourceHandler staticResourceHandler = new StaticResourceHandler();
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
     }
 
-    public void handler() {
+    public void handle() {
         try (
                 BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
+                OutputStream outputStream = socket.getOutputStream()
         ) {
             HttpRequest request = parseRequest(reader);
+            if (request.getPath() == null) {
+                HttpResponse response = new HttpResponse();
+                response.setStatus(400, "Bad Request");
+                response.addHeader("Content-Type", "text/plain; charset=UTF-8");
+                response.setBody("400 Bad Request");
 
-            System.out.println("method = " + request.getMethod());
-            System.out.println("path = " + request.getPath());
-            System.out.println("version = " + request.getVersion());
-            System.out.println("headers = " + request.getHeaders());
+                outputStream.write(response.toHttpBytes());
+                outputStream.flush();
+                return;
+            }
+            HttpResponse response = staticResourceHandler.handle(request);
 
-            HttpResponse response = new HttpResponse();
-            response.setBody("Hello World");
-
-            writer.write(response.toHttpString());
-            writer.flush();
+            outputStream.write(response.toHttpBytes());
+            outputStream.flush();
 
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -52,6 +57,10 @@ public class ClientHandler {
         }
 
         String[] requestLineParts = requestLine.split(" ");
+        if (requestLineParts.length < 3) {
+            return request;
+        }
+
         request.setMethod(requestLineParts[0]);
         request.setPath(requestLineParts[1]);
         request.setVersion(requestLineParts[2]);
