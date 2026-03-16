@@ -1,6 +1,7 @@
 package study.handler;
 
 import study.container.ServletContainer;
+import study.exception.NotFoundException;
 import study.http.HttpRequest;
 import study.http.HttpResponse;
 import study.servlet.Servlet;
@@ -19,8 +20,7 @@ public class DynamicHandler implements Handler {
         Servlet servlet = servletContainer.getServlet(request.getPath());
 
         if (servlet == null) {
-            response.sendError(404, "Not Found");
-            return response;
+            throw new NotFoundException("Not Found");
         }
 
         servlet.service(request, response);

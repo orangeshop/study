@@ -1,6 +1,8 @@
 package study.connection;
 
 import study.dispatch.RequestDispatcher;
+import study.exception.BadRequestException;
+import study.exception.HttpException;
 import study.http.HttpRequest;
 import study.http.HttpResponse;
 
@@ -29,6 +31,8 @@ public class ClientHandler {
             try {
                 HttpRequest request = parseRequest(reader);
                 writeResponse(outputStream, dispatcher.dispatch(request));
+            } catch (HttpException e) {
+                writeResponse(outputStream, createErrorResponse(e.getStatusCode(), e.getStatusMessage()));
             } catch (Exception e) {
                 writeResponse(outputStream, createErrorResponse(500, "Internal Server Error"));
             }
@@ -59,12 +63,12 @@ public class ClientHandler {
 
         String requestLine = reader.readLine();
         if (requestLine == null || requestLine.isEmpty()) {
-            return request;
+            throw new BadRequestException("Bad Request");
         }
 
         String[] requestLineParts = requestLine.split(" ");
         if (requestLineParts.length < 3) {
-            return request;
+            throw new BadRequestException("Bad Request");
         }
 
         request.setMethod(requestLineParts[0]);
@@ -111,7 +115,13 @@ public class ClientHandler {
             return;
         }
 
-        int contentLength = Integer.parseInt(contentLengthHeader);
+        int contentLength;
+        try {
+            contentLength = Integer.parseInt(contentLengthHeader);
+        } catch (NumberFormatException e) {
+            throw new BadRequestException("Invalid Content-Length");
+        }
+
         if (contentLength <= 0) {
             return;
         }

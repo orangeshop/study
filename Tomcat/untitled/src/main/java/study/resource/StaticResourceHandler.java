@@ -1,5 +1,8 @@
 package study.resource;
 
+import study.exception.ForbiddenException;
+import study.exception.InternalServerErrorException;
+import study.exception.NotFoundException;
 import study.handler.Handler;
 import study.http.HttpRequest;
 import study.http.HttpResponse;
@@ -25,13 +28,11 @@ public class StaticResourceHandler implements Handler {
             Path filePath = WEB_ROOT.resolve(requestPath.substring(1)).normalize();
 
             if (!filePath.startsWith(WEB_ROOT)) {
-                response.sendError(403, "Forbidden");
-                return response;
+                throw new ForbiddenException("Forbidden");
             }
 
             if (!Files.exists(filePath) || Files.isDirectory(filePath)) {
-                response.sendError(404, "Not Found");
-                return response;
+                throw new NotFoundException("Not Found");
             }
 
             byte[] body = Files.readAllBytes(filePath);
@@ -42,8 +43,7 @@ public class StaticResourceHandler implements Handler {
 
             return response;
         } catch (IOException e) {
-            response.sendError(500, "Internal Server Error");
-            return response;
+            throw new InternalServerErrorException("Internal Server Error", e);
         }
     }
 

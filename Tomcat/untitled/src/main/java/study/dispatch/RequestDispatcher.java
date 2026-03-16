@@ -1,6 +1,7 @@
 package study.dispatch;
 
 import study.container.ServletContainer;
+import study.exception.BadRequestException;
 import study.handler.Handler;
 import study.http.HttpRequest;
 import study.http.HttpResponse;
@@ -20,9 +21,7 @@ public class RequestDispatcher {
         String path = request.getPath();
 
         if (path == null) {
-            HttpResponse response = new HttpResponse();
-            response.sendError(400, "Bad Request");
-            return response;
+            throw new BadRequestException("Bad Request");
         }
 
         if (isDynamicRequest(path)) {
