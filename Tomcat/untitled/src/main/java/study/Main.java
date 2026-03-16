@@ -1,39 +1,35 @@
 package study;
 
+import study.config.AppConfig;
+import study.config.AppConfigLoader;
+import study.config.FilterConfigFactory;
+import study.config.ServletConfigLoader;
 import study.container.ServletContainer;
 import study.dispatch.RequestDispatcher;
 import study.filter.Filter;
-import study.filter.LoggingFilter;
-import study.filter.SessionFilter;
 import study.handler.DynamicHandler;
 import study.handler.Handler;
 import study.resource.StaticResourceHandler;
 import study.server.HttpServer;
 import study.session.SessionManager;
-import study.servlet.HelloServlet;
-import study.servlet.LoginServlet;
-import study.servlet.UserServlet;
 
 import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
+        AppConfig appConfig = new AppConfigLoader().load("application.properties");
+
         ServletContainer servletContainer = new ServletContainer();
-        servletContainer.register("/hello", new HelloServlet());
-        servletContainer.register("/user", new UserServlet());
-        servletContainer.register("/login", new LoginServlet());
+        new ServletConfigLoader().registerServlets(servletContainer, appConfig.getServletMappings());
         Runtime.getRuntime().addShutdownHook(new Thread(servletContainer::destroyAll));
 
         Handler dynamicHandler = new DynamicHandler(servletContainer);
         Handler staticHandler = new StaticResourceHandler();
         SessionManager sessionManager = new SessionManager();
-        List<Filter> filters = List.of(
-                new SessionFilter(sessionManager),
-                new LoggingFilter()
-        );
+        List<Filter> filters = new FilterConfigFactory(sessionManager).createFilters(appConfig.getFilters());
         RequestDispatcher dispatcher = new RequestDispatcher(staticHandler, dynamicHandler, servletContainer, filters);
 
-        HttpServer httpServer = new HttpServer(8080, dispatcher);
+        HttpServer httpServer = new HttpServer(appConfig.getPort(), dispatcher);
         httpServer.start();
     }
 }
